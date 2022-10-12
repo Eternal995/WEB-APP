@@ -51,3 +51,51 @@ module.exports.getPrograms = function () {
     resolve(programs);
   });
 };
+
+module.exports.addStudent = (studentData) => {
+  return new Promise((resolve, reject) => {
+    studentData.isInternationalStudent === undefined
+      ? (studentData.isInternationalStudent = false)
+      : (studentData.isInternationalStudent = true);
+    let maxID = 0;
+    let current = 0;
+    for (let i = 0; i < students.length; i++) {
+      current = parseInt(students[i].studentID);
+      if (current > maxID) maxID = current;
+    }
+    studentData.studentID = (++maxID).toString();
+    students.push(studentData);
+    if (studentData.studentID === undefined) reject("Something went wrong");
+    resolve();
+  });
+};
+
+module.exports.getStudentsByStatus = (status) => {
+  return new Promise((resolve, reject) => {
+    let result = students.filter((student) => student.status === status);
+    result.length === 0 ? reject("No results returned.") : resolve(result);
+  });
+};
+
+module.exports.getStudentsByProgramCode = (programCode) => {
+  return new Promise((resolve, reject) => {
+    let result = students.filter((student) => student.program === programCode);
+    result.length === 0 ? reject("No results returned.") : resolve(result);
+  });
+};
+
+module.exports.getStudentsByExpectedCredential = (credential) => {
+  return new Promise((resolve, reject) => {
+    let result = students.filter(
+      (student) => student.expectedCredential === credential
+    );
+    result.length === 0 ? reject("No results returned.") : resolve(result);
+  });
+};
+
+module.exports.getStudentById = (sid) => {
+  return new Promise((resolve, reject) => {
+    let result = students.find((student) => student.studentID === sid);
+    result.length === 0 ? reject("No results returned.") : resolve(result);
+  });
+};

@@ -25,10 +25,10 @@
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
           <ul class="nav navbar-nav">
-            <li class="active"><a href="#">Home</a></li>
+            <li><a href="/">Home</a></li>
             <li><a href="/about">About</a></li>
             <li><a href="/students/add">Add Student</a></li>
-            <li><a href="/images/add">Add Image</a></li>
+            <li class="active"><a href="#">Add Image</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
             <li><a href="/images">Images</a></li>
@@ -41,16 +41,22 @@
     </nav>
     <div class="container">
       <div class="row">
-        <aside class="col-md-3">
-          <h2>Coming Soon</h2>
-          <p>This website is coming soon!</p>
-        </aside>
-        <section class="main col-md-9">
-          <article>
-          <h2>Welcome</h2>
-          <p>Welcome to my website!</p>
-          </article>
-        </section>
+        <div class="col-md-12">
+            <h1>Add Image</h1>
+            <hr />
+            <form method="post" action="/images/add" enctype="multipart/form-data">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="firstName">Image File:</label>
+                                <input class="form-control" id="imageFile" name="imageFile" type="file" />
+                            </div>
+                        </div>
+                    </div>
+                <hr />
+                <input type="submit" class="btn btn-primary pull-right" value="Add Image" /><br /><br /><br />
+            </form>
+        </div>
       </div>
     </div>
 
