@@ -128,9 +128,12 @@ app.get("/images/add", (req, res) => {
 });
 
 app.get("/images", (req, res) => {
-  fs.readdir("./public/images/uploaded", function (err, items) {
-    res.json(items);
-  });
+  fs.readdir(
+    path.join(__dirname, "/public/images/uploaded"),
+    function (err, items) {
+      res.json(items);
+    }
+  );
 });
 
 app.post("/images/add", upload.single("imageFile"), (req, res) => {
