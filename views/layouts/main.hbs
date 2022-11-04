@@ -25,33 +25,21 @@
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
           <ul class="nav navbar-nav">
-            <li class="active"><a href="#">Home</a></li>
-            <li><a href="/about">About</a></li>
-            <li><a href="/students/add">Add Student</a></li>
-            <li><a href="/images/add">Add Image</a></li>
+            {{#navLink "/"}}Home{{/navLink}}
+            {{#navLink "/about"}}About{{/navLink}}
+            {{#navLink "/students/add"}}Add Student{{/navLink}}
+            {{#navLink "/images/add"}}Add Image{{/navLink}}
           </ul>
           <ul class="nav navbar-nav navbar-right">
             <li><a href="/images">Images</a></li>
             <li><a href="/students">Students</a></li>
-            <li><a href="/intlstudents">Int'l Students</a></li>
             <li><a href="/programs">Programs</a></li>
           </ul>
         </div><!-- /.navbar-collapse -->
       </div><!-- /.container-fluid -->
     </nav>
     <div class="container">
-      <div class="row">
-        <aside class="col-md-3">
-          <h2>Coming Soon</h2>
-          <p>This website is coming soon!</p>
-        </aside>
-        <section class="main col-md-9">
-          <article>
-          <h2>Welcome</h2>
-          <p>Welcome to my website!</p>
-          </article>
-        </section>
-      </div>
+        {{{body}}}
     </div>
 
     <!-- Latest compiled and minified jQuery 3.2.1 JavaScript -->

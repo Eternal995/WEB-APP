@@ -99,3 +99,14 @@ module.exports.getStudentById = (sid) => {
     result.length === 0 ? reject("No results returned.") : resolve(result);
   });
 };
+
+module.exports.updateStudent = (studentData) => {
+  return new Promise((resolve, reject) => {
+    for (let i = 0; i < students.length; i++) {
+      if (students[i].studentID === studentData.studentID) {
+        students[i] = studentData;
+        resolve();
+      }
+    }
+  });
+};
