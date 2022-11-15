@@ -160,6 +160,15 @@ app.post("/students/add", (req, res) => {
   }).catch((err) => res.status(500).send("Unable to Add Student"));
 });
 
+app.get("/students/delete/:studentID", (req, res) => {
+  dataService
+    .deleteStudentById(req.params.studentID)
+    .then(res.redirect("/students"))
+    .catch(
+      res.status(500).send("Unable to Remove Student / Student not found.")
+    );
+});
+
 // student
 app.get("/student/:studentId", (req, res) => {
   // initialize an empty object to store the values
@@ -199,7 +208,7 @@ app.get("/student/:studentId", (req, res) => {
         // if no student - return an error
         res.status(404).send("Student Not Found");
       } else {
-        res.render("student", { viewData: viewData }); // render the "student" view
+        res.render("student", { viewData: viewData.student[0] }); // render the "student" view
       }
     })
     .catch((err) => {
@@ -207,13 +216,10 @@ app.get("/student/:studentId", (req, res) => {
     });
 });
 
-app.get("/students/delete/:studentID", (req, res) => {
-  dataService
-    .deleteStudentById(req.params.studentID)
-    .then(res.redirect("/students"))
-    .catch(
-      res.status(500).send("Unable to Remove Student / Student not found.")
-    );
+app.post("/student/update", (req, res) => {
+  dataService.updateStudent(req.body).then(() => {
+    res.redirect("/students");
+  });
 });
 
 // programs
@@ -243,19 +249,7 @@ app.post("/programs/add", (req, res) => {
     });
 });
 
-// program
-app.get("/program/:value", (req, res) => {
-  dataService
-    .getProgramByCode(req.params.value)
-    .then((data) => {
-      res.render("program", { program: data });
-    })
-    .catch((error) => {
-      res.status(404).send("Program Not Found");
-    });
-});
-
-app.post("/program/delete/:value", (req, res) => {
+app.get("/programs/delete/:value", (req, res) => {
   dataService
     .deleteProgramByCode(req.params.value)
     .then((data) => {
@@ -264,6 +258,24 @@ app.post("/program/delete/:value", (req, res) => {
     .catch((error) => {
       res.status(500).send("Unable to Remove Program / Program not found");
     });
+});
+
+// program
+app.get("/program/:programCode", (req, res) => {
+  dataService
+    .getProgramByCode(req.params.programCode)
+    .then((data) => {
+      res.render("program", { program: data });
+    })
+    .catch((error) => {
+      res.status(404).send("Program Not Found");
+    });
+});
+
+app.post("/program/update", (req, res) => {
+  dataService.updateProgram(req.body).then(() => {
+    res.redirect("/programs");
+  });
 });
 
 // image
