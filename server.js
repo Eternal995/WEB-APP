@@ -6,7 +6,7 @@
  *
  *  Name: Yongda Long
  *  Student ID: 172800211
- *  Date: Nov 3, 2022
+ *  Date: Nov 15, 2022
  *
  *  Online (Cyclic) Link: https://yongdalong.cyclic.app/
  *
@@ -146,34 +146,77 @@ app.get("/students", (req, res) => {
 });
 
 app.get("/students/add", (req, res) => {
-  res.render(path.join(__dirname, "/views/addStudent.hbs"));
+  dataService
+    .getPrograms()
+    .then((data) => {
+      res.render("addStudent", { programs: data });
+    })
+    .catch((err) => res.render("addStudent", { programs: [] }));
 });
 
 app.post("/students/add", (req, res) => {
   dataService.addStudent(req.body).then(() => {
     res.redirect("/students");
-  });
+  }).catch((err) => res.status(500).send("Unable to Add Student"));
 });
 
 // student
-app.get("/student/:value", (req, res) => {
+app.get("/student/:studentId", (req, res) => {
+  // initialize an empty object to store the values
+  let viewData = {};
+
   dataService
-    .getStudentById(req.params.value)
+    .getStudentById(req.params.studentId)
     .then((data) => {
-      res.render("student", { student: data });
+      if (data) {
+        viewData.student = data; //store student data in the "viewData" object as "student"
+      } else {
+        viewData.student = null; // set student to null if none were returned
+      }
     })
-    .catch((error) => {
-      res.render("student", { message: "no results" });
+    .catch(() => {
+      viewData.student = null; // set student to null if there was an error
+    })
+    .then(dataService.getPrograms)
+    .then((data) => {
+      viewData.programs = data; // store program data in the "viewData" object as "programs"
+
+      // loop through viewData.programs and once we have found the programCode that matches
+      // the student's "program" value, add a "selected" property to the matching
+      // viewData.programs object
+
+      for (let i = 0; i < viewData.programs.length; i++) {
+        if (viewData.programs[i].programCode == viewData.student.program) {
+          viewData.programs[i].selected = true;
+        }
+      }
+    })
+    .catch(() => {
+      viewData.programs = []; // set programs to empty if there was an error
+    })
+    .then(() => {
+      if (viewData.student == null) {
+        // if no student - return an error
+        res.status(404).send("Student Not Found");
+      } else {
+        res.render("student", { viewData: viewData }); // render the "student" view
+      }
+    })
+    .catch((err) => {
+      res.status(500).send("Unable to Show Students");
     });
 });
 
-app.post("/student/update", (req, res) => {
-  dataService.updateStudent(req.body).then(() => {
-    res.redirect("/students");
-  });
+app.get("/students/delete/:studentID", (req, res) => {
+  dataService
+    .deleteStudentById(req.params.studentID)
+    .then(res.redirect("/students"))
+    .catch(
+      res.status(500).send("Unable to Remove Student / Student not found.")
+    );
 });
 
-// program
+// programs
 app.get("/programs", (req, res) => {
   dataService
     .getPrograms()
@@ -182,6 +225,44 @@ app.get("/programs", (req, res) => {
     })
     .catch((err) => {
       res.render("programs", { message: "no results" });
+    });
+});
+
+app.get("/programs/add", (req, res) => {
+  res.render(path.join(__dirname, "/views/addProgram.hbs"));
+});
+
+app.post("/programs/add", (req, res) => {
+  dataService
+    .addProgram(req.body)
+    .then(() => {
+      res.redirect("/programs");
+    })
+    .catch((err) => {
+      res.status(500).send("Unable to Add Program");
+    });
+});
+
+// program
+app.get("/program/:value", (req, res) => {
+  dataService
+    .getProgramByCode(req.params.value)
+    .then((data) => {
+      res.render("program", { program: data });
+    })
+    .catch((error) => {
+      res.status(404).send("Program Not Found");
+    });
+});
+
+app.post("/program/delete/:value", (req, res) => {
+  dataService
+    .deleteProgramByCode(req.params.value)
+    .then((data) => {
+      res.redirect("/programs");
+    })
+    .catch((error) => {
+      res.status(500).send("Unable to Remove Program / Program not found");
     });
 });
 
