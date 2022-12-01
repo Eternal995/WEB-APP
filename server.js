@@ -1,25 +1,27 @@
 /*********************************************************************************
- *  WEB322 – Assignment 04
+ *  WEB322 – Assignment 06
  *  I declare that this assignment is my own work in accordance with Seneca  Academic Policy.
  *  No part of this assignment has been copied manually or electronically from any other source
  *  (including 3rd party web sites) or distributed to other students.
  *
  *  Name: Yongda Long
  *  Student ID: 172800211
- *  Date: Nov 15, 2022
+ *  Date: Dec 01, 2022
  *
  *  Online (Cyclic) Link: https://yongdalong.cyclic.app/
  *
  ********************************************************************************/
 
-var HTTP_PORT = process.env.PORT || 8080;
-var express = require("express");
-var path = require("path");
-var multer = require("multer");
-var fs = require("fs");
-var exphbs = require("express-handlebars");
+const HTTP_PORT = process.env.PORT || 8080;
+const express = require("express");
+const path = require("path");
+const multer = require("multer");
+const fs = require("fs");
+const exphbs = require("express-handlebars");
+const clientSessions = require("client-sessions");
 
-var dataService = require("./data-service.js");
+const dataService = require("./data-service.js");
+const dataServiceAuth = require("./data-service-auth.js");
 
 var app = express();
 
@@ -83,12 +85,82 @@ function onStart() {
 
 dataService
   .initialize()
+  .then(dataServiceAuth.initialize())
   .then(() => {
     app.listen(HTTP_PORT, onStart());
   })
   .catch((message) => {
-    console.log(message);
+    console.log("Unable to start server: " + message);
   });
+
+// client-sessions
+app.use(
+  clientSessions({
+    cookieName: "session",
+    secret: "WEB322Assignment6YongdaLong",
+    duration: 2 * 60 * 1000,
+    activeDuration: 60 * 1000,
+  })
+);
+
+app.use((req, res, next) => {
+  res.locals.session = req.session;
+  next();
+});
+
+function ensureLogin(req, res, next) {
+  if (!req.session.user) {
+    res.redirect("/login");
+  } else {
+    next();
+  }
+}
+
+app.get("/login", (req, res) => {
+  res.render("login");
+});
+
+app.get("/register", (req, res) => {
+  res.render("register");
+});
+
+app.post("/register", (req, res) => {
+  dataServiceAuth
+    .registerUser(req.body)
+    .then(() => res.render("register", { successMessage: "User created" }))
+    .catch((err) => {
+      res.render("register", {
+        errorMessage: err,
+        userName: req.body.userName,
+      });
+    });
+});
+
+app.post("/login", (req, res) => {
+  req.body.userAgent = req.get("User-Agent");
+  dataServiceAuth
+    .checkUser(req.body)
+    .then((user) => {
+      req.session.user = {
+        userName: user.userName,
+        email: user.email,
+        loginHistory: user.loginHistory,
+      };
+      res.redirect("/students");
+    })
+    .catch((err) => {
+      res.render("login", { errorMessage: err, userName: req.body.userName });
+    });
+});
+
+app.get("/logout", (req, res) => {
+  req.session.reset();
+  res.redirect("/");
+});
+
+app.get("/userHistory", ensureLogin, (req, res) => {
+  res.render("userHistory", { user: req.session.user });
+});
 
 // home
 app.get("/", (req, res) => {
@@ -105,7 +177,7 @@ app.get("/about", (req, res) => {
 });
 
 // students
-app.get("/students", (req, res) => {
+app.get("/students", ensureLogin, (req, res) => {
   if (req.query.status) {
     dataService
       .getStudentsByStatus(req.query.status)
@@ -145,7 +217,7 @@ app.get("/students", (req, res) => {
   }
 });
 
-app.get("/students/add", (req, res) => {
+app.get("/students/add", ensureLogin, (req, res) => {
   dataService
     .getPrograms()
     .then((data) => {
@@ -154,13 +226,16 @@ app.get("/students/add", (req, res) => {
     .catch((err) => res.render("addStudent", { programs: [] }));
 });
 
-app.post("/students/add", (req, res) => {
-  dataService.addStudent(req.body).then(() => {
-    res.redirect("/students");
-  }).catch((err) => res.status(500).send("Unable to Add Student"));
+app.post("/students/add", ensureLogin, (req, res) => {
+  dataService
+    .addStudent(req.body)
+    .then(() => {
+      res.redirect("/students");
+    })
+    .catch((err) => res.status(500).send("Unable to Add Student"));
 });
 
-app.get("/students/delete/:studentID", (req, res) => {
+app.get("/students/delete/:studentID", ensureLogin, (req, res) => {
   dataService
     .deleteStudentById(req.params.studentID)
     .then(res.redirect("/students"))
@@ -170,7 +245,7 @@ app.get("/students/delete/:studentID", (req, res) => {
 });
 
 // student
-app.get("/student/:studentId", (req, res) => {
+app.get("/student/:studentId", ensureLogin, (req, res) => {
   // initialize an empty object to store the values
   let viewData = {};
 
@@ -216,14 +291,14 @@ app.get("/student/:studentId", (req, res) => {
     });
 });
 
-app.post("/student/update", (req, res) => {
+app.post("/student/update", ensureLogin, (req, res) => {
   dataService.updateStudent(req.body).then(() => {
     res.redirect("/students");
   });
 });
 
 // programs
-app.get("/programs", (req, res) => {
+app.get("/programs", ensureLogin, (req, res) => {
   dataService
     .getPrograms()
     .then((data) => {
@@ -234,11 +309,11 @@ app.get("/programs", (req, res) => {
     });
 });
 
-app.get("/programs/add", (req, res) => {
+app.get("/programs/add", ensureLogin, (req, res) => {
   res.render(path.join(__dirname, "/views/addProgram.hbs"));
 });
 
-app.post("/programs/add", (req, res) => {
+app.post("/programs/add", ensureLogin, (req, res) => {
   dataService
     .addProgram(req.body)
     .then(() => {
@@ -249,7 +324,7 @@ app.post("/programs/add", (req, res) => {
     });
 });
 
-app.get("/programs/delete/:value", (req, res) => {
+app.get("/programs/delete/:value", ensureLogin, (req, res) => {
   dataService
     .deleteProgramByCode(req.params.value)
     .then((data) => {
@@ -261,7 +336,7 @@ app.get("/programs/delete/:value", (req, res) => {
 });
 
 // program
-app.get("/program/:programCode", (req, res) => {
+app.get("/program/:programCode", ensureLogin, (req, res) => {
   dataService
     .getProgramByCode(req.params.programCode)
     .then((data) => {
@@ -272,14 +347,14 @@ app.get("/program/:programCode", (req, res) => {
     });
 });
 
-app.post("/program/update", (req, res) => {
+app.post("/program/update", ensureLogin, (req, res) => {
   dataService.updateProgram(req.body).then(() => {
     res.redirect("/programs");
   });
 });
 
 // image
-app.get("/images", (req, res) => {
+app.get("/images", ensureLogin, (req, res) => {
   fs.readdir(
     path.join(__dirname, "/public/images/uploaded"),
     function (err, items) {
@@ -288,11 +363,11 @@ app.get("/images", (req, res) => {
   );
 });
 
-app.get("/images/add", (req, res) => {
+app.get("/images/add", ensureLogin, (req, res) => {
   res.render(path.join(__dirname, "/views/addImage.hbs"));
 });
 
-app.post("/images/add", upload.single("imageFile"), (req, res) => {
+app.post("/images/add", ensureLogin, upload.single("imageFile"), (req, res) => {
   res.redirect("/images");
 });
 
