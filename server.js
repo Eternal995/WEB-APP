@@ -98,8 +98,8 @@ app.use(
   clientSessions({
     cookieName: "session",
     secret: "WEB322Assignment6YongdaLong",
-    duration: 2 * 60 * 1000,
-    activeDuration: 60 * 1000,
+    duration: 10 * 60 * 1000,
+    activeDuration: 5 * 60 * 1000,
   })
 );
 
@@ -138,6 +138,7 @@ app.post("/register", (req, res) => {
 
 app.post("/login", (req, res) => {
   req.body.userAgent = req.get("User-Agent");
+  console.log(req.body);
   dataServiceAuth
     .checkUser(req.body)
     .then((user) => {
