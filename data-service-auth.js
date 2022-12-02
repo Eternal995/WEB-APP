@@ -67,7 +67,7 @@ module.exports.registerUser = (userData) => {
 
 module.exports.checkUser = (userData) => {
   return new Promise((resolve, reject) => {
-    User.find({ userName: userData.userName })
+    User.findOne({ userName: userData.userName })
       .exec()
       .then((user) => {
         console.log(user);
