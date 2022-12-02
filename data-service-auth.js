@@ -70,6 +70,7 @@ module.exports.checkUser = (userData) => {
     User.find({ userName: userData.userName })
       .exec()
       .then((user) => {
+        console.log(user);
         bcrypt.compare(userData.password, user[0].password).then((result) => {
           if (!result)
             reject("Incorrect Password for user: " + userData.userName);
