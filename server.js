@@ -98,8 +98,8 @@ app.use(
   clientSessions({
     cookieName: "session",
     secret: "WEB322Assignment6YongdaLong",
-    duration: 10 * 60 * 1000,
-    activeDuration: 5 * 60 * 1000,
+    duration: 2 * 60 * 1000,
+    activeDuration: 60 * 1000,
   })
 );
 
