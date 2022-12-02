@@ -66,7 +66,9 @@ module.exports.registerUser = (userData) => {
 };
 
 module.exports.checkUser = (userData) => {
+  console.log(userData);
   return new Promise((resolve, reject) => {
+    console.log(userData);
     User.find({ userName: userData.userName })
       .exec()
       .then((user) => {
