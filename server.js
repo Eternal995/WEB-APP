@@ -125,6 +125,7 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
+  console.log(req.body);
   dataServiceAuth
     .registerUser(req.body)
     .then(() => res.render("register", { successMessage: "User created" }))
@@ -138,6 +139,7 @@ app.post("/register", (req, res) => {
 
 app.post("/login", (req, res) => {
   req.body.userAgent = req.get("User-Agent");
+  console.log(req.body);
   dataServiceAuth
     .checkUser(req.body)
     .then((user) => {
