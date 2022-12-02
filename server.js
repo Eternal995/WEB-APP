@@ -85,7 +85,7 @@ function onStart() {
 
 dataService
   .initialize()
-  .then(dataServiceAuth.initialize())
+  .then(dataServiceAuth.initialize)
   .then(() => {
     app.listen(HTTP_PORT, onStart());
   })
